@@ -3,13 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29025.244
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{A07B5EB6-E848-4116-A8D0-A826331D98C6}") = "ServiceFabfricReliableActorsDemo", "ServiceFabfricReliableActorsDemo\ServiceFabfricReliableActorsDemo.sfproj", "{440C2195-526D-444A-82D4-6EACF9F04BA7}"
+Project("{A07B5EB6-E848-4116-A8D0-A826331D98C6}") = "ReliableActorsDemo", "ReliableActorsDemo\ReliableActorsDemo.sfproj", "{440C2195-526D-444A-82D4-6EACF9F04BA7}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GameActor", "GameActor\GameActor.csproj", "{D99C9F67-4B9E-429E-B920-6AA57F3E1F49}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GameActor.Interfaces", "GameActor.Interfaces\GameActor.Interfaces.csproj", "{14049833-46AA-4916-BBEB-0E37839FA2D5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameClient", "GameClient\GameClient.csproj", "{777FD3DC-E627-4A8C-980B-27FC327739E9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GameClient", "GameClient\GameClient.csproj", "{777FD3DC-E627-4A8C-980B-27FC327739E9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
