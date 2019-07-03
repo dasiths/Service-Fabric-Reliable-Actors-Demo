@@ -7,26 +7,21 @@ using Microsoft.ServiceFabric.Actors;
 using Microsoft.ServiceFabric.Actors.Runtime;
 using Microsoft.ServiceFabric.Actors.Client;
 using GameActor.Interfaces;
+using GameActor.Interfaces.Models;
 
 namespace GameActor
 {
-    /// <remarks>
-    /// This class represents an actor.
-    /// Every ActorID maps to an instance of this class.
-    /// The StatePersistence attribute determines persistence and replication of actor state:
-    ///  - Persisted: State is written to disk and replicated.
-    ///  - Volatile: State is kept in memory only and replicated.
-    ///  - None: State is kept in memory only and not replicated.
-    /// </remarks>
     [StatePersistence(StatePersistence.Persisted)]
     internal class GameActor : Actor, IGameActor
     {
+        private const string PlayerActorUri = "fabric:/ReliableActorsDemo/PlayerActorService";
+
         /// <summary>
         /// Initializes a new instance of GameActor
         /// </summary>
         /// <param name="actorService">The Microsoft.ServiceFabric.Actors.Runtime.ActorService that will host this actor instance.</param>
         /// <param name="actorId">The Microsoft.ServiceFabric.Actors.ActorId for this actor instance.</param>
-        public GameActor(ActorService actorService, ActorId actorId) 
+        public GameActor(ActorService actorService, ActorId actorId)
             : base(actorService, actorId)
         {
         }
@@ -35,7 +30,7 @@ namespace GameActor
         /// This method is called whenever an actor is activated.
         /// An actor is activated the first time any of its methods are invoked.
         /// </summary>
-        protected override Task OnActivateAsync()
+        protected override async Task OnActivateAsync()
         {
             ActorEventSource.Current.ActorMessage(this, "Actor activated.");
 
@@ -44,7 +39,8 @@ namespace GameActor
             // Any serializable object can be saved in the StateManager.
             // For more information, see https://aka.ms/servicefabricactorsstateserialization
 
-            return this.StateManager.TryAddStateAsync("count", 0);
+            await this.StateManager.TryAddStateAsync("count", 0);
+            await this.StateManager.TryAddStateAsync("players", new List<string>());
         }
 
         Task<int> IGameActor.GetCountAsync(CancellationToken cancellationToken)
@@ -59,11 +55,43 @@ namespace GameActor
             return this.StateManager.AddOrUpdateStateAsync("count", count, (key, value) => count > value ? count : value, cancellationToken);
         }
 
-        Task IGameActor.JoinGameAsync(string playerName)
+        async Task<string> IGameActor.JoinGameAsync(string playerName, CancellationToken cancellationToken)
         {
+            var newActorId = $"{playerName}-actor";
+            var playerActor = ActorProxy.Create<IPlayerActor>(new ActorId(newActorId), new Uri(PlayerActorUri));
+            await playerActor.InitializeAsync(Id.ToString(), playerName, cancellationToken);
+
+            await StateManager.AddOrUpdateStateAsync("players", new List<string>() { newActorId }, (key, value) =>
+               {
+                   if (!value.Contains(newActorId))
+                   {
+                       value.Add(newActorId);
+                   }
+
+                   return value;
+               }, cancellationToken);
+
             var ev = GetEvent<IGameEvents>();
-            ev.NewPlayerJoined(this.Id.ToString(), playerName);
-            return Task.CompletedTask;
+            ev.NewPlayerJoined(Id.ToString(), playerName);
+
+            return newActorId;
+        }
+
+        public async Task<IList<PlayerInfo>> GetLatestPlayerInfoAsync(CancellationToken cancellationToken)
+        {
+            var allPlayers = await StateManager.GetStateAsync<List<string>>("players", cancellationToken);
+
+            var tasks = allPlayers.Select(actorName =>
+            {
+                var playerActor = ActorProxy.Create<IPlayerActor>(new ActorId(actorName), new Uri(PlayerActorUri));
+                return playerActor.GetLatestInfoAsync(cancellationToken);
+            }).ToList();
+
+            await Task.WhenAll(tasks);
+
+            return tasks
+                .Select(t => t.Result)
+                .ToList();
         }
     }
 }

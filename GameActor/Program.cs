@@ -24,6 +24,9 @@ namespace GameActor
                 ActorRuntime.RegisterActorAsync<GameActor> (
                    (context, actorType) => new ActorService(context, actorType)).GetAwaiter().GetResult();
 
+                ActorRuntime.RegisterActorAsync<PlayerActor>(
+                    (context, actorType) => new ActorService(context, actorType)).GetAwaiter().GetResult();
+
                 Thread.Sleep(Timeout.Infinite);
             }
             catch (Exception e)

@@ -4,6 +4,9 @@
     <Parameter Name="GameActorService_PartitionCount" DefaultValue="10" />
     <Parameter Name="GameActorService_MinReplicaSetSize" DefaultValue="3" />
     <Parameter Name="GameActorService_TargetReplicaSetSize" DefaultValue="3" />
+    <Parameter Name="PlayerActorService_PartitionCount" DefaultValue="10" />
+    <Parameter Name="PlayerActorService_MinReplicaSetSize" DefaultValue="3" />
+    <Parameter Name="PlayerActorService_TargetReplicaSetSize" DefaultValue="3" />
   </Parameters>
   <!-- Import the ServiceManifest from the ServicePackage. The ServiceManifestName and ServiceManifestVersion 
        should match the Name and Version attributes of the ServiceManifest element defined in the 
@@ -15,6 +18,11 @@
     <Service Name="GameActorService" GeneratedIdRef="3cca5c09-8c1f-492c-b135-549b5e00e6e2|Persisted">
       <StatefulService ServiceTypeName="GameActorServiceType" TargetReplicaSetSize="[GameActorService_TargetReplicaSetSize]" MinReplicaSetSize="[GameActorService_MinReplicaSetSize]">
         <UniformInt64Partition PartitionCount="[GameActorService_PartitionCount]" LowKey="-9223372036854775808" HighKey="9223372036854775807" />
+      </StatefulService>
+    </Service>
+    <Service Name="PlayerActorService" GeneratedIdRef="43dc78e7-2960-431d-96d4-3f0948d169fd|Persisted">
+      <StatefulService ServiceTypeName="PlayerActorServiceType" TargetReplicaSetSize="[PlayerActorService_TargetReplicaSetSize]" MinReplicaSetSize="[PlayerActorService_MinReplicaSetSize]">
+        <UniformInt64Partition PartitionCount="[PlayerActorService_PartitionCount]" LowKey="-9223372036854775808" HighKey="9223372036854775807" />
       </StatefulService>
     </Service>
     <!-- The section below creates instances of service types, when an instance of this 
