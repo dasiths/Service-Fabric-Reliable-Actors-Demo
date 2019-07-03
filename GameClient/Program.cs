@@ -1,30 +1,38 @@
 ﻿using System;
 using System.Threading;
+using System.Threading.Tasks;
 using GameActor.Interfaces;
 using Microsoft.ServiceFabric.Actors;
 using Microsoft.ServiceFabric.Actors.Client;
-using Microsoft.ServiceFabric.Services.Client;
-using Microsoft.ServiceFabric.Services.Remoting.Client;
 
 namespace GameClient
 {
     class Program
     {
+        private const string GameActorUri = "fabric:/ReliableActorsDemo/GameActorService";
+
         static void Main(string[] args)
         {
-            var gameName = "dasith's game";
+            RunDemo("Dasith's game").ConfigureAwait(false).GetAwaiter().GetResult();
+        }
+
+        private static async Task RunDemo(string gameName)
+        {
+            Console.WriteLine("Hit return when the service is up...");
+            Console.ReadLine();
             Console.WriteLine("Enter your name:");
             var playerName = Console.ReadLine();
 
-            IGameActor actor = ActorProxy.Create<IGameActor>(new ActorId(gameName), new Uri("fabric:/ServiceFabfricReliableActorsDemo/GameActorService"));
-            actor.SubscribeAsync<IGameEvents>(new GameEventsHandler());
-            actor.JoinGameAsync(playerName);
+            Console.WriteLine("This might take a few seconds...");
+            var actor = ActorProxy.Create<IGameActor>(new ActorId(gameName), new Uri(GameActorUri));
+            await actor.SubscribeAsync<IGameEvents>(new GameEventsHandler());
+            await actor.JoinGameAsync(playerName);
 
             while (true)
             {
-                var retval = actor.GetCountAsync(new CancellationToken()).GetAwaiter().GetResult();
-                Console.WriteLine(retval);
-                actor.SetCountAsync(retval + 1, new CancellationToken()).GetAwaiter().GetResult();
+                var value = await actor.GetCountAsync(new CancellationToken());
+                Console.WriteLine(value);
+                await actor.SetCountAsync(value + 1, new CancellationToken());
                 Console.ReadLine();
             }
         }
