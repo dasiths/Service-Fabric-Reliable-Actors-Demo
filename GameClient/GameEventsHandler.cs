@@ -10,12 +10,11 @@ namespace GameClient
 {
     public class GameEventsHandler : IGameEvents
     {
-        private const string GameActorUri = "fabric:/ReliableActorsDemo/GameActorService";
         private readonly IGameActor _gameActor;
 
         public GameEventsHandler(IGameActor gameActor)
         {
-            _gameActor = gameActor; //ActorProxy.Create<IGameActor>(new ActorId(gameName), new Uri(GameActorUri)); ;
+            _gameActor = gameActor;
         }
 
         public void NewPlayerJoined(string gameName, string newPlayerName)
@@ -25,8 +24,9 @@ namespace GameClient
 
         public void ScoreboardUpdated(PlayerInfo lastInfo)
         {
-            Console.WriteLine("Scoreboard updated");
+            Console.WriteLine($"Scoreboard updated. (Last move by: {lastInfo.PlayerName})");
 
+            // When calling the actor inside a notification handler method, you have to do it after this method completes. So we queue it to the thread pool.
             Task.Run(async () =>
                 {
                     var positions = await _gameActor.GetLatestPlayerInfoAsync(CancellationToken.None);
