@@ -26,28 +26,18 @@ namespace GameClient
             var playerName = Console.ReadLine();
 
             Console.WriteLine("This might take a few seconds...");
-            var actor = ActorProxy.Create<IGameActor>(new ActorId(gameName), new Uri(GameActorUri));
-            await actor.SubscribeAsync<IGameEvents>(new GameEventsHandler());
-            var playerActorId = await actor.JoinGameAsync(playerName, CancellationToken.None);
+            var gameActor = ActorProxy.Create<IGameActor>(new ActorId(gameName), new Uri(GameActorUri));
+            await gameActor.SubscribeAsync<IGameEvents>(new GameEventsHandler(gameActor));
+
+            var playerActorId = await gameActor.JoinGameAsync(playerName, CancellationToken.None);
+            var playerActor = ActorProxy.Create<IPlayerActor>(new ActorId(playerActorId), new Uri(PlayerActorUri));
 
             while (true)
             {
-                var value = await actor.GetCountAsync(new CancellationToken());
-                Console.WriteLine(value);
-                await actor.SetCountAsync(value + 1, new CancellationToken());
-
-                var playerActor = ActorProxy.Create<IPlayerActor>(new ActorId(playerActorId), new Uri(PlayerActorUri));
-                await playerActor.MoveToAsync(rand.Next(100), rand.Next(100), CancellationToken.None);
-
-                var positions = await actor.GetLatestPlayerInfoAsync(CancellationToken.None);
-
-                foreach (var playerInfo in positions)
-                {
-                    Console.WriteLine($"Position of {playerInfo.PlayerName} is ({playerInfo.XCoordinate},{playerInfo.YCoordinate})." +
-                                      $"\nUpdated at {playerInfo.LastUpdate}\n");
-                }
-
+                Console.WriteLine("Press return to move to new location...");
                 Console.ReadLine();
+                
+                await playerActor.MoveToAsync(rand.Next(100), rand.Next(100), CancellationToken.None);
             }
         }
     }

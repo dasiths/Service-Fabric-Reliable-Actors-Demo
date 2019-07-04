@@ -13,9 +13,8 @@ namespace GameActor.Interfaces
 {
     public interface IGameActor : IActor, IActorEventPublisher<IGameEvents>
     {
-        Task<int> GetCountAsync(CancellationToken cancellationToken);
-        Task SetCountAsync(int count, CancellationToken cancellationToken);
         Task<string> JoinGameAsync(string playerName, CancellationToken cancellationToken);
         Task<IList<PlayerInfo>> GetLatestPlayerInfoAsync(CancellationToken cancellationToken);
+        Task NotifyPlayerMovedAsync(PlayerInfo lastMovement, CancellationToken cancellationToken);
     }
 }

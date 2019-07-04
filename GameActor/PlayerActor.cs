@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using GameActor.Interfaces;
 using GameActor.Interfaces.Models;
 using Microsoft.ServiceFabric.Actors;
+using Microsoft.ServiceFabric.Actors.Client;
 using Microsoft.ServiceFabric.Actors.Runtime;
 
 namespace GameActor
@@ -13,6 +14,8 @@ namespace GameActor
     [StatePersistence(StatePersistence.Persisted)]
     internal class PlayerActor : Actor, IPlayerActor
     {
+        private const string GameActorUri = "fabric:/ReliableActorsDemo/GameActorService";
+
         public PlayerActor(ActorService actorService, ActorId actorId) : base(actorService, actorId)
         {
         }
@@ -45,6 +48,10 @@ namespace GameActor
                 value.Add(playerInfo);
                 return value;
             }, cancellationToken);
+
+            var gameName = await StateManager.GetStateAsync<string>("gameName", cancellationToken);
+            var gameActor = ActorProxy.Create<IGameActor>(new ActorId(gameName), new Uri(GameActorUri));
+            await gameActor.NotifyPlayerMovedAsync(playerInfo, cancellationToken);
         }
 
         public async Task<PlayerInfo> GetLatestInfoAsync(CancellationToken cancellationToken)
